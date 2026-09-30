@@ -1,7 +1,6 @@
 package model;
 
 import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,7 +11,7 @@ public class MonthlyTimesheet {
     private final Employee employee;
     private final int year;
     private final int month;
-    // Внутреннее изменяемое состояние
+
     private final List<Shift> shifts = new ArrayList<>();
 
     public MonthlyTimesheet(Employee employee, int year, int month) {
@@ -25,7 +24,7 @@ public class MonthlyTimesheet {
      * Добавление смены. Может выбросить проверяемое исключение.
      */
     public void addShift(Shift shift) throws InvalidShiftException {
-        // Дополнительная бизнес-проверка: смена должна быть в пределах месяца табеля
+
         if (shift.start().getYear() != year || shift.start().getMonthValue() != month) {
             throw new InvalidShiftException("Смена не принадлежит месяцу табеля: " + shift.start());
         }
@@ -50,10 +49,6 @@ public class MonthlyTimesheet {
 
     /**
      * Разбиение смен на отрезки разных типов (акцент варианта).
-     * Упрощенный алгоритм: разбиваем на часовые куски и проверяем час начала.
-     */
-    /**
-     * Разбиение смен на отрезки разных типов (акцент варианта).
      * Алгоритм объединяет соседние часы одного типа в один сегмент.
      */
     public List<TimeSegment> splitShiftsIntoSegments() {
@@ -72,16 +67,14 @@ public class MonthlyTimesheet {
                 var duration = Duration.between(current, nextHour);
                 int hour = current.getHour();
 
-                // Определяем тип времени (с 22:00 до 06:00 - ночное)
                 TimeType currentType = (hour >= 22 || hour < 6) ? TimeType.NIGHT : TimeType.REGULAR;
 
-                // Проверяем, можно ли объединить с предыдущим сегментом
                 if (!segments.isEmpty()) {
-                    var lastSegment = segments.get(segments.size() - 1);
+                    var lastSegment = segments.getLast();
                     if (lastSegment.type() == currentType) {
-                        // Объединяем: создаём новый сегмент с суммарной длительностью
+
                         var mergedDuration = lastSegment.duration().plus(duration);
-                        segments.remove(segments.size() - 1);
+                        segments.removeLast();
 
                         TimeSegment mergedSegment = switch (currentType) {
                             case NIGHT -> new NightSegment(mergedDuration);
@@ -94,7 +87,6 @@ public class MonthlyTimesheet {
                     }
                 }
 
-                // Создаём новый сегмент
                 TimeSegment segment = switch (currentType) {
                     case NIGHT -> new NightSegment(duration);
                     case REGULAR -> new RegularSegment(duration);
@@ -127,7 +119,6 @@ public class MonthlyTimesheet {
             long pay = type.calculatePay(totalDuration, employee.getBaseRateKopecksPerHour());
             totalPay += pay;
 
-            // Использование switch-expression и var
             var typeDescription = switch (type) {
                 case REGULAR -> "Обычное время";
                 case NIGHT -> "Ночное время";

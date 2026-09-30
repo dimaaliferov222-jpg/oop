@@ -29,7 +29,7 @@ public enum TimeType {
             throw new IllegalArgumentException("Ставка не может быть отрицательной");
         }
         double hours = duration.toMinutes() / 60.0;
-        // Округляем до целых копеек
+
         return Math.round(hours * baseRateKopecksPerHour * coefficient);
     }
 }
